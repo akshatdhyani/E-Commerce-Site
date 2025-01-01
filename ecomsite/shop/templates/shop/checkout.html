@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" 
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" 
+            crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" 
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" 
+          crossorigin="anonymous">
+    <title>Checkout</title>
+</head>
+<body>
+   <div class="container">
+        <!-- HOME Button -->
+        <div class="row m-5">
+            <div class="col-md-12">
+                <a href="/" class="btn btn-primary">HOME</a>
+                <h1>Review your order</h1>
+                <hr>
+            </div>
+        </div>
+
+        <!-- Items in the Cart -->
+        <div class="row m-5">
+            <div class="col-md-12">
+                <h4>Items in your cart</h4>
+                <hr>
+                <ul class="list-group" id="item_list"></ul>    
+            </div>
+        </div>
+
+        <!-- Shipping Details -->
+        <div class="row m-5">
+            <div class="col-md-12">
+                <h1>Enter shipping details</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row m-5">
+            <div class="col-md-12">
+                <form method="POST" action="/thank_you/">
+                    {% csrf_token %}
+                    <input type="hidden" id="items" name="items">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputEmail4">Name</label>
+                            <input id="name" name="name" type="text" 
+                                   class="form-control" placeholder="John">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputPassword4">Email</label>
+                            <input id="email" name="email" type="text" 
+                                   class="form-control" placeholder="john@john.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAddress">Address</label>
+                        <input id="address" name="address" type="text" 
+                               class="form-control" placeholder="1234 Main St">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputCity">City</label>
+                            <input id="city" name="city" type="text" class="form-control">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="inputState">State</label>
+                            <input id="state" name="state" type="text" class="form-control">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="inputZip">Zip</label>
+                            <input id="zipcode" name="zipcode" type="text" class="form-control">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="total">Amount to be paid</label>
+                            <input readonly type="text" class="form-control" 
+                                   id="total" name="total">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Place Order</button>
+                </form>
+            </div>
+        </div>
+   </div>
+
+   <script type="text/javascript">
+       // Initialize cart
+       if (localStorage.getItem('cart') == null) {
+           var cart = {};
+       } else {
+           cart = JSON.parse(localStorage.getItem('cart'));
+       }
+
+       let total = 0;
+
+       // Function to render cart items
+       function renderCart() {
+           $('#item_list').empty();
+           total = 0;
+
+           for (item in cart) {
+               let name = cart[item][1];
+               let quantity = cart[item][0];
+               let price = cart[item][2];
+               total += price;
+
+               let itemString = `
+                   <li class="list-group-item d-flex justify-content-between align-items-center">
+                       <div>
+                           <span>${quantity} of ${name}</span>
+                       </div>
+                       <div>
+                           <span class="badge badge-warning badge-pill">${price}</span>
+                           <button class="btn btn-success btn-sm add-quantity ml-2" data-item="${item}">+</button>
+                           <button class="btn btn-danger btn-sm minus-quantity ml-2" data-item="${item}">-</button>
+                           <button class="btn btn-danger btn-sm remove-item ml-2" data-item="${item}">Remove</button>
+                       </div>
+                   </li>`;
+               $('#item_list').append(itemString);
+           }
+
+           let totalPrice = `
+               <li class="list-group-item d-flex justify-content-between align-items-center">
+                   <b>Your total</b>
+                   <span>${total}</span>
+               </li>`;
+           $('#item_list').append(totalPrice);
+           $('#total').val(total);
+           $('#items').val(JSON.stringify(cart));
+       }
+
+       // Event listener for Add Quantity button
+       $(document).on('click', '.add-quantity', function () {
+           let itemKey = $(this).data('item');
+           cart[itemKey][0] += 1; // Increase quantity
+           cart[itemKey][2] += cart[itemKey][2] / (cart[itemKey][0] - 1); // Adjust price
+           localStorage.setItem('cart', JSON.stringify(cart));
+           renderCart();
+       });
+
+       // Event listener for Minus Quantity button
+       $(document).on('click', '.minus-quantity', function () {
+           let itemKey = $(this).data('item');
+           if (cart[itemKey][0] > 1) {
+               cart[itemKey][0] -= 1; // Decrease quantity
+               cart[itemKey][2] -= cart[itemKey][2] / (cart[itemKey][0] + 1); // Adjust price
+           }
+           localStorage.setItem('cart', JSON.stringify(cart));
+           renderCart();
+       });
+
+       // Event listener for Remove button
+       $(document).on('click', '.remove-item', function () {
+           let itemKey = $(this).data('item');
+           total -= cart[itemKey][2];
+           delete cart[itemKey];
+           localStorage.setItem('cart', JSON.stringify(cart));
+           renderCart();
+       });
+
+       // Initial render
+       renderCart();
+   </script>
+</body>
+</html>

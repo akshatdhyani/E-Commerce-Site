@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <title>Product Details</title>
+
+    <style>
+        .product-image {
+            max-width: 100%; /* Make image responsive */
+            height: auto; /* Maintain aspect ratio */
+        }
+        .product-details {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <!-- Image Column -->
+            <div class="col-md-6">
+                <img src="{{ product_object.image }}" class="product-image" alt="{{ product_object.title }}">
+            </div>
+
+            <!-- Product Details Column -->
+            <div class="col-md-6 product-details">
+                <h2>{{ product_object.title }}</h2>
+                <p><strong>Price:</strong> ₹{{ product_object.price|floatformat:2 }}</p>
+                {% if product_object.discount_price %}
+                    <p><strong>Discounted Price:</strong> ₹{{ product_object.discount_price|floatformat:2 }}</p>
+                {% endif %}
+                <p><strong>Description:</strong></p>
+                <p>{{ product_object.description }}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
